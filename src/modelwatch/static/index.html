@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ModelWatch: measured model performance, operational health, and distribution monitoring with traceable data.">
+  <title>ModelWatch — Model observability</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to dashboard</a>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="ModelWatch home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>ModelWatch<span class="brand-dot">.</span></a>
+    <div class="workspace-label">OBSERVABILITY WORKSPACE</div>
+    <nav aria-label="Dashboard sections">
+      <a href="#overview" class="nav-link active"><span aria-hidden="true">◫</span> Overview</a>
+      <a href="#distributions" class="nav-link"><span aria-hidden="true">≋</span> Distribution shifts</a>
+      <a href="#performance" class="nav-link"><span aria-hidden="true">◎</span> Model performance</a>
+      <a href="#events" class="nav-link"><span aria-hidden="true">≡</span> Request ledger</a>
+      <a href="#provenance" class="nav-link"><span aria-hidden="true">◇</span> Data provenance</a>
+    </nav>
+    <div class="sidebar-note"><div class="small-kicker">OBSERVE WITH CONTEXT</div><p>A change in inputs is a signal to investigate. Ground-truth labels tell you whether performance changed.</p><a href="/docs" target="_blank" rel="noopener">Explore the API <span aria-hidden="true">↗</span></a></div>
+    <div class="sidebar-footer"><span class="status-dot"></span>Local-first · SQLite</div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> Model overview</div><div class="topbar-right"><span id="updated-at">Connecting to ModelWatch</span><button class="button secondary" id="refresh" type="button"><span aria-hidden="true">↻</span> Refresh</button></div></header>
+    <main id="main">
+      <section id="overview" class="intro">
+        <div><div class="eyebrow">MODEL HEALTH, IN PERSPECTIVE</div><h1>Know when your<br class="desktop-break"> model changes.</h1><p class="intro-copy">Measured performance. Visible shifts. Evidence behind every number.</p></div>
+        <div class="selection-panel"><label for="model-select">MODEL</label><select id="model-select" disabled><option>Loading models…</option></select><label for="run-select">OBSERVATION RUN</label><select id="run-select" disabled><option>Select a model</option></select></div>
+      </section>
+      <div id="message" class="message" role="status" aria-live="polite">Loading recorded observations…</div>
+      <section id="empty-state" class="empty-state" hidden><div class="eyebrow">YOUR FIRST OBSERVATION</div><h2>Start with evidence.</h2><p>Replay the verified Banking77 benchmark to record real inference timings, model predictions, and dataset labels.</p><code>python -m modelwatch replay --data-dir data/banking77</code><p class="muted">Then refresh this page. Replay data is always marked as a benchmark, never as production traffic.</p></section>
+      <div id="dashboard" hidden>
+        <div class="run-strip"><div><span id="source-badge" class="badge">Observation run</span><span id="model-version" class="mono muted"></span></div><span id="run-detail" class="muted"></span></div>
+        <section class="metric-grid" aria-label="Run summary">
+          <article class="metric-card"><div class="metric-label">Requests observed<span class="metric-icon" aria-hidden="true">↗</span></div><div class="metric-value" id="request-count">—</div><div class="metric-foot" id="error-detail">No observations</div></article>
+          <article class="metric-card"><div class="metric-label">Latency · p95<span class="metric-icon" aria-hidden="true">◷</span></div><div class="metric-value" id="latency-value">—</div><div class="metric-foot" id="latency-detail">Measured inference timings</div></article>
+          <article class="metric-card"><div class="metric-label">Label coverage<span class="metric-icon" aria-hidden="true">✓</span></div><div class="metric-value" id="coverage-value">—</div><div class="metric-foot" id="coverage-detail">Awaiting ground truth</div></article>
+          <article class="metric-card accent-card"><div class="metric-label">Observed accuracy<span class="metric-icon" aria-hidden="true">◎</span></div><div class="metric-value" id="accuracy-value">—</div><div class="metric-foot" id="accuracy-detail">Labeled requests only</div></article>
+        </section>
+
+        <section id="distributions" class="panel drift-panel"><div class="panel-heading"><div><div class="eyebrow">DISTRIBUTION MONITORING</div><h2>What changed in the inputs?</h2></div><span id="drift-status" class="badge neutral">Awaiting comparison</span></div><p class="section-copy">Compare successful observations against the reference run. Distribution shifts do not, on their own, establish a loss in model quality.</p><div id="drift-content"></div><div class="panel-caption" id="drift-caption"></div></section>
+
+        <section id="performance" class="panel"><div class="panel-heading"><div><div class="eyebrow">GROUND-TRUTH EVALUATION</div><h2>Performance by class</h2></div><div class="macro-stat"><span>Macro F1</span><strong id="macro-f1">—</strong></div></div><p class="section-copy" id="quality-description">Metrics use only successful requests with a supplied ground-truth label.</p><div class="table-toolbar"><label class="search-label" for="class-search"><span class="sr-only">Search classes</span><input type="search" id="class-search" placeholder="Find a class…" autocomplete="off"></label><label class="sort-label" for="class-sort">Sort by <select id="class-sort"><option value="recall">Lowest recall</option><option value="support">Most labeled samples</option><option value="label">Class name</option><option value="f1">Lowest F1</option></select></label></div><div class="table-wrap"><table><caption class="sr-only">Class performance for labeled successful requests in the selected run</caption><thead><tr><th scope="col">Class</th><th scope="col">Support</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1</th><th scope="col">Missed</th></tr></thead><tbody id="class-rows"></tbody></table></div><div class="table-footer"><span id="class-count"></span><button type="button" class="text-button" id="show-classes" hidden>Show all classes</button></div></section>
+
+        <section id="events" class="panel"><div class="panel-heading"><div><div class="eyebrow">REQUEST LEDGER</div><h2>Every observation has a record.</h2></div><span class="subtle-tag">No raw message text stored</span></div><div class="table-wrap"><table><caption class="sr-only">Recorded requests in the selected run</caption><thead><tr><th scope="col">Event / timestamp</th><th scope="col">Prediction</th><th scope="col">Model score</th><th scope="col">Latency</th><th scope="col">Ground truth</th><th scope="col">Status</th></tr></thead><tbody id="event-rows"></tbody></table></div><div class="table-footer"><span id="event-count"></span><div class="pagination"><button type="button" class="button secondary" id="previous-events" disabled>Previous</button><button type="button" class="button secondary" id="next-events" disabled>Next</button></div></div><p class="panel-caption">Model scores are uncalibrated. They are not guarantees of correctness. Event timestamps record observation time, not the original creation time of benchmark messages.</p></section>
+
+        <section id="provenance" class="panel provenance-panel"><div><div class="eyebrow">TRACEABLE BY DESIGN</div><h2>Where the evidence comes from.</h2><p class="section-copy" id="provenance-summary"></p><dl id="provenance-details" class="provenance-details"></dl></div><div class="provenance-note"><h3>Read these results in context</h3><ul><li>Replay traffic measures a local benchmark run, not live customer traffic.</li><li>Accuracy depends on which requests receive labels. Coverage matters.</li><li>Shift thresholds are investigation heuristics, not statistical proof of degraded performance.</li></ul><details><summary>Inspect run metadata</summary><pre id="metadata-json"></pre></details></div></section>
+        <div id="warnings" class="warnings" aria-live="polite"></div>
+        <footer class="page-footer"><span>ModelWatch · Evidence before assumptions.</span><a href="/docs" target="_blank" rel="noopener">API documentation ↗</a></footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.env
+runtime/
+work/
+build/
+dist/
+reports/latest-replay.json
+*.sqlite3*
+*.joblib
